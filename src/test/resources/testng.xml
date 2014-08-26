@@ -1,0 +1,12 @@
+<suite name="TestRail Integration Testing">
+    <listeners>
+        <listener class-name="com.nullin.testrail.TestRailListener" />
+    </listeners>
+    <test name="Some Tests">
+        <classes>
+            <class name="com.nullin.testrail.sampleproj.TestClassA" />
+            <class name="com.nullin.testrail.sampleproj.TestClassB" />
+            <class name="com.nullin.testrail.sampleproj.pkg.TestClassC" />
+        </classes>
+    </test>
+</suite>
