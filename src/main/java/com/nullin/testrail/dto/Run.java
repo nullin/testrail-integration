@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Run {
 
     public int id;
+    @JsonProperty("project_id")
+    public Integer projectId;
     @JsonProperty("suite_id")
     public int suiteId;
     @JsonProperty("plan_id")
