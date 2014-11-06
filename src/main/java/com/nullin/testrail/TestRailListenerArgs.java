@@ -12,8 +12,8 @@ public class TestRailListenerArgs {
 
     //if the listener is enabled or not
     private Boolean enabled;
-    //project id
-    private Integer projectId;
+//    //project id
+//    private Integer projectId;
     //test plan id (if one already exists)
     private Integer testPlanId;
     //suite names
@@ -30,19 +30,21 @@ public class TestRailListenerArgs {
     public static TestRailListenerArgs getNewTestRailListenerArgs() {
         TestRailListenerArgs args = new TestRailListenerArgs();
         args.enabled = Boolean.valueOf(System.getProperty("testRail.enabled"));
-        String projectId = System.getProperty("testRail.projectId");
-        if (projectId == null) {
-            throw new IllegalArgumentException("TestRail Project ID not specified");
-        } else {
-            try {
-                args.projectId = Integer.valueOf(projectId);
-            } catch(NumberFormatException ex) {
-                throw new IllegalArgumentException("Project Id is not an integer as expected");
-            }
-        }
+//        String projectId = System.getProperty("testRail.projectId");
+//        if (projectId == null) {
+//            throw new IllegalArgumentException("TestRail Project ID not specified");
+//        } else {
+//            try {
+//                args.projectId = Integer.valueOf(projectId);
+//            } catch(NumberFormatException ex) {
+//                throw new IllegalArgumentException("Project Id is not an integer as expected");
+//            }
+//        }
 
         String planId = System.getProperty("testRail.testPlanId");
-        if (planId != null) {
+        if (planId == null) {
+            throw new IllegalArgumentException("TestRail Test Plan ID not specified");
+        } else {
             try {
                 args.testPlanId = Integer.valueOf(planId);
             } catch(NumberFormatException ex) {
@@ -85,9 +87,9 @@ public class TestRailListenerArgs {
         return enabled;
     }
 
-    public Integer getProjectId() {
-        return projectId;
-    }
+//    public Integer getProjectId() {
+//        return projectId;
+//    }
 
     public Integer getTestPlanId() {
         return testPlanId;
