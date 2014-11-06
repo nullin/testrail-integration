@@ -12,6 +12,7 @@ Requirements/Assumptions
 * Automation IDs need to be added as first parameter of the data-driven tests
 * Automation IDs need to be unique within a TestRail test suite
 * All test suite names should be unique
+* For the foreseeable future, a TestRail test plan needs to be pre-created and associated with the required suites
 
 Workflow
 --------
@@ -19,20 +20,15 @@ Workflow
 - Connect and get a list of all test suites in the project and cache in a map
 - Also, get the list of all tests cases within the suites and create a map of the automation IDs to case IDs
 - If same automation id is associated with multiple case ids in same suite, raise error and quit
-- Create a new test plan (if an id isn't already specified) and associated the specified test suites
-- For each result to be reported, get the method and it's enclosing class
-	- get the annotations
-	- Get the test run id
-		(multiple runs for same suite, not supported yet. Need to handle configurationIds for that to work)
+- Get the test plan based on the specified plan name or id
+- For each result to be reported, get the method and it's enclosing class (multiple runs for same suite,
+not supported yet. Need to handle configurationIds for that to work)
+	- get the annotations and figure out the automation id
 	- if the test was DD, the first parameter should be automation id
 	- from automation id, get the case id
 	- now we have case id and test run id
 	- report the result
-- Done with all results, close the test plan (by default or control based on user specified parameter)
 - Finish
-- Extras:
-	- support creating test runs with configurations
-	- output tests that were not reported into file w/ reason for failure
 
 Different Scenarios
 -------------------
@@ -63,3 +59,11 @@ Different Scenarios
 
   We will create a new TestRail test run and also associate the TestRail test suites which were passed in to us
   while configuring the listener. For this scenario, suite names is a required configuration.
+
+Future work
+--------------------
+
+- Support creating test runs with configurations
+- Output tests that were not reported into file w/ reason for failure
+- Create a new test plan (if an id isn't already specified) and associated the specified test suites
+- When done with all results, close the test plan (by default or control based on user specified parameter)
