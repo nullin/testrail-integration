@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.nullin.testrail.annotations.TestRailCase;
 import com.nullin.testrail.client.ClientException;
@@ -19,10 +20,7 @@ import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 /**
- * A simple listener that starts up a server and prints out the current execution status.
- *
- * Uses jetty to start the server and handle the requests and uses a h2 in-memory data base
- * to store the results
+ * A TestNG listener to report results to TestRail instance
  *
  * @author nullin
  */
@@ -34,7 +32,15 @@ public class TestRailListener implements ITestListener {
     private Map<String, Integer> suiteMap;
     private Plan plan;
 
+    //ensures that only one instance of this listener is running
+    private static AtomicBoolean initialized = new AtomicBoolean(false);
+
     public TestRailListener() throws IOException, ClientException {
+        if (initialized.get()) {
+            throw new IllegalStateException("TestRail listener already initialized. " +
+                    "Multiple instances of this listener are not allowed. Please check your configuration.");
+        }
+        initialized.set(true);
         args = TestRailListenerArgs.getNewTestRailListenerArgs();
         enabled = args.getEnabled();
 
