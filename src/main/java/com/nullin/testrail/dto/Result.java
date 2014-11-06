@@ -3,7 +3,7 @@ package com.nullin.testrail.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * TODO: add javadocs!
+ * Test Result
  *
  * @author nullin
  */

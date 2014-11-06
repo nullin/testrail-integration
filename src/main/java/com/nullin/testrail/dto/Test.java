@@ -3,8 +3,6 @@ package com.nullin.testrail.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * TODO: add javadocs!
- *
  * Represents a test instance (an instance of a test case)
  *
  * @author nullin

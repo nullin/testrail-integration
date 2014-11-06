@@ -1,17 +1,28 @@
 package com.nullin.testrail;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * TODO: add javadocs!
+ * Arugments for {@link com.nullin.testrail.TestRailListener}
  *
  * @author nullin
  */
 public class TestRailListenerArgs {
 
+    //if the listener is enabled or not
     private Boolean enabled;
+    //project id
     private Integer projectId;
+    //test plan id (if one already exists)
     private Integer testPlanId;
+    //suite names
+    private List<String> suiteNames;
+    //url to the TestRail instance
     private String url;
+    //username to login to TestRail
     private String username;
+    //password to login to TestRail
     private String password;
 
     private TestRailListenerArgs() {}
@@ -34,6 +45,22 @@ public class TestRailListenerArgs {
         if (planId != null) {
             try {
                 args.testPlanId = Integer.valueOf(planId);
+            } catch(NumberFormatException ex) {
+                throw new IllegalArgumentException("Plan Id is not an integer as expected");
+            }
+        }
+
+        String suiteNamesStr = System.getProperty("testRail.suiteNames");
+        if (suiteNamesStr != null) {
+            try {
+                String[] suiteNamesArr = suiteNamesStr.split(",");
+                args.suiteNames = new ArrayList<String>();
+                for (String suiteName : suiteNamesArr) {
+                    if (suiteName != null && !suiteName.trim().isEmpty()) {
+                        args.suiteNames.add(suiteName.trim());
+                    }
+                }
+
             } catch(NumberFormatException ex) {
                 throw new IllegalArgumentException("Plan Id is not an integer as expected");
             }
@@ -64,6 +91,10 @@ public class TestRailListenerArgs {
 
     public Integer getTestPlanId() {
         return testPlanId;
+    }
+
+    public List<String> getSuiteNames() {
+        return suiteNames;
     }
 
     public String getUrl() {

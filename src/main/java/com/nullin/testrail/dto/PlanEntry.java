@@ -5,7 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * TODO: add javadocs!
+ * Test Plan entry
  *
  * @author nullin
  */

@@ -1,7 +1,7 @@
 package com.nullin.testrail.client;
 
 /**
- * TODO: javadocs
+ * Exception raised something goes wrong communicating with TestRail server
  *
  * @author nullin
  */

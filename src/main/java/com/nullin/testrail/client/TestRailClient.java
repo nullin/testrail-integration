@@ -13,26 +13,47 @@ import com.nullin.testrail.dto.Plan;
 import com.nullin.testrail.dto.PlanEntry;
 import com.nullin.testrail.dto.Result;
 import com.nullin.testrail.dto.Run;
+import com.nullin.testrail.dto.Section;
 import com.nullin.testrail.dto.Suite;
 import com.nullin.testrail.dto.Test;
 
 /**
- * TODO: add javadocs!
+ * TestRail Client for endpoints described at
+ * {@link http://docs.gurock.com/testrail-api2/start}
+ *
+ * Contains methods to talk to all the various endpoints for all the
+ * different object types within this one class. The method parameters
+ * translate to the fields accepted as part of the request URL as well as a
+ * map of fields that can be passed as body of the POST requests
+ *
+ * Client works with TestRails v4.0
  *
  * @author nullin
  */
 public class TestRailClient {
 
+    //underlying api client
     private APIClient client;
+    //(de)-serializes objects to/from json
     private ObjectMapper objectMapper;
 
+    /**
+     * Creates an instance of the client and setups up required state
+     *
+     * @param url
+     * @param username
+     * @param password
+     */
     public TestRailClient(String url, String username, String password) {
         client = new APIClient(url, username, password);
         objectMapper = new ObjectMapper();
+        //TODO: should probably remove this
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    //Plans
+    /*
+    Plans
+     */
 
     public Plan getPlan(int planId) throws IOException, ClientException {
         /*
@@ -168,7 +189,9 @@ public class TestRailClient {
         client.invokeHttpPost("delete_plan/" + planId, "");
     }
 
-    //result
+    /*
+    Results
+     */
 
     /**
      *
@@ -187,19 +210,80 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpPost(url, objectMapper.writeValueAsString(body)), Result.class);
     }
 
-    //test
+    /*
+    Tests
+     */
 
     public Test getTest(int testId) throws IOException, ClientException {
         return objectMapper.readValue(client.invokeHttpGet("get_test/" + testId), Test.class);
     }
 
-    //case
+    /*
+    Cases
+     */
+
+    public Case addCase(int sectionId, String title, Map<String, String> fields) throws IOException, ClientException {
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("title", title);
+        if (fields != null) {
+            body.putAll(fields);
+        }
+        return objectMapper.readValue(
+                client.invokeHttpPost("add_case/" + sectionId, objectMapper.writeValueAsString(body)), Case.class);
+    }
 
     public Case getCase(int caseId) throws IOException, ClientException {
         return objectMapper.readValue(client.invokeHttpGet("get_case/" + caseId), Case.class);
     }
 
-    //Suite
+    public List<Case> getCases(int projectId, int suiteId, int sectionId, Map<String, String> filters) throws IOException, ClientException {
+        String url = "get_cases/" + projectId;
+        if (suiteId > 0) {
+            url += "&suite_id=" + suiteId;
+        }
+        if (sectionId > 0) {
+            url += "&section_id=" + sectionId;
+        }
+        if (filters != null) {
+            for (Map.Entry<String, String> entry : filters.entrySet()) {
+                url += "&" + entry.getKey() + "=" + entry.getValue();
+            }
+        }
+
+        long s = System.currentTimeMillis();
+        String str = client.invokeHttpGet(url);
+        System.out.println(System.currentTimeMillis() - s);
+        System.out.println(str.length());
+        return objectMapper.readValue(str, new TypeReference<List<Case>>(){});
+    }
+
+    /*
+    Sections
+     */
+
+    public Section addSection(int projectId, String name, int parentId, int suiteId) throws IOException, ClientException {
+        Map<String, String> body = new HashMap<String, String>();
+        if (suiteId > 0) {
+            body.put("suite_id", String.valueOf(suiteId));
+        }
+        if (parentId > 0) {
+            body.put("parent_id", String.valueOf(parentId));
+        }
+        body.put("name", name);
+        return objectMapper.readValue(
+                client.invokeHttpPost("add_section/" + projectId, objectMapper.writeValueAsString(body)), Section.class);
+    }
+
+    /*
+    Suites
+     */
+
+    public Suite addSuite(int projectId, String name) throws IOException, ClientException {
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("name", name);
+        return objectMapper.readValue(
+                client.invokeHttpPost("add_suite/" + projectId, objectMapper.writeValueAsString(body)), Suite.class);
+    }
 
     public Suite getSuite(int suiteId) throws IOException, ClientException {
         /*
@@ -240,7 +324,9 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpGet("get_suites/" + projectId), new TypeReference<List<Suite>>(){});
     }
 
-    //Run
+    /*
+    Runs
+     */
 
     public Run getRun(int runId) throws IOException, ClientException {
         /*

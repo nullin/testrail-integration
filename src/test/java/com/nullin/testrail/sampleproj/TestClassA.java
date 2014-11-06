@@ -3,7 +3,6 @@ package com.nullin.testrail.sampleproj;
 import java.util.Random;
 
 import com.nullin.testrail.annotations.TestRailCase;
-import com.nullin.testrail.annotations.TestRailClass;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -13,10 +12,9 @@ import org.testng.annotations.Test;
  *
  * @author nullin
  */
-@TestRailClass(suiteName = "TestSuite1")
 public class TestClassA {
 
-    @TestRailCase(caseId = "29")
+    @TestRailCase(automationId = "29")
     @Test
     public void test1() {
         Assert.assertTrue(getResult(10, 2));

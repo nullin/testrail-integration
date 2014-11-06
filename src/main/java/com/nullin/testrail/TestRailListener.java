@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.nullin.testrail.annotations.TestRailCase;
-import com.nullin.testrail.annotations.TestRailClass;
 import com.nullin.testrail.client.ClientException;
 import com.nullin.testrail.client.TestRailClient;
 import com.nullin.testrail.dto.Plan;
@@ -83,13 +82,13 @@ public class TestRailListener implements ITestListener {
         }
 
         Class clazz = result.getTestClass().getRealClass();
-        TestRailClass trClass = (TestRailClass) clazz.getAnnotation(TestRailClass.class);
-        if (trClass == null) {
-            //TODO: log to file
-            return; //nothing more to do
-        }
+//        TestRailClass trClass = (TestRailClass) clazz.getAnnotation(TestRailClass.class);
+//        if (trClass == null) {
+//            TODO: log to file
+//            return; //nothing more to do
+//        }
 
-        String suiteName = trClass.suiteName();
+        String suiteName = null;//trClass.suiteName(); //TODO
         Integer suiteId = suiteMap.get(suiteName);
 
         if (suiteId == null) {
@@ -117,7 +116,7 @@ public class TestRailListener implements ITestListener {
         Throwable throwable = result.getThrowable();
         String exception = throwable == null ? null : throwable.toString();
 
-        String caseIdStr = trCase.caseId();
+        String caseIdStr = null; //trCase.caseId(); //TODO
         if (caseIdStr == null || caseIdStr.isEmpty()) {
             //case id not specified on method, check if this is a DD method
             if (trCase.dataDriven()) {

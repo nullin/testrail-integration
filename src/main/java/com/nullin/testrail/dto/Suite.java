@@ -1,7 +1,7 @@
 package com.nullin.testrail.dto;
 
 /**
- * TODO: add javadocs!
+ * Test suite
  *
  * @author nullin
  */
