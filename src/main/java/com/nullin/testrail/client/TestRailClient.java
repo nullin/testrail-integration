@@ -249,12 +249,7 @@ public class TestRailClient {
                 url += "&" + entry.getKey() + "=" + entry.getValue();
             }
         }
-
-        long s = System.currentTimeMillis();
-        String str = client.invokeHttpGet(url);
-        System.out.println(System.currentTimeMillis() - s);
-        System.out.println(str.length());
-        return objectMapper.readValue(str, new TypeReference<List<Case>>(){});
+        return objectMapper.readValue(client.invokeHttpGet(url), new TypeReference<List<Case>>(){});
     }
 
     /*
