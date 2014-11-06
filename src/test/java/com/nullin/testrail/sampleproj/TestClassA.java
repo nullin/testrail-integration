@@ -8,13 +8,12 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * TODO: add javadocs!
  *
  * @author nullin
  */
 public class TestClassA {
 
-    @TestRailCase(automationId = "29")
+    @TestRailCase(automationId = "testA1")
     @Test
     public void test1() {
         Assert.assertTrue(getResult(10, 2));
@@ -23,8 +22,8 @@ public class TestClassA {
     @DataProvider(name = "MYDP")
     public Object[][] getData() {
         return new Object[][] {
-                {"30", 10, 3},
-                {"31", 10, 5}
+                {"testA2", 10, 3},
+                {"testA3", 10, 5}
         };
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @author nullin
  */
-public class TestRailListenerArgs {
+public class TestRailArgs {
 
     //if the listener is enabled or not
     private Boolean enabled;
@@ -25,11 +25,16 @@ public class TestRailListenerArgs {
     //password to login to TestRail
     private String password;
 
-    private TestRailListenerArgs() {}
+    private TestRailArgs() {}
 
-    public static TestRailListenerArgs getNewTestRailListenerArgs() {
-        TestRailListenerArgs args = new TestRailListenerArgs();
+    public static TestRailArgs getNewTestRailListenerArgs() {
+        TestRailArgs args = new TestRailArgs();
         args.enabled = Boolean.valueOf(System.getProperty("testRail.enabled"));
+
+        if (args.enabled == null || !args.enabled) {
+            return args; //no need to process further. TestRail reporting is not enabled
+        }
+
 //        String projectId = System.getProperty("testRail.projectId");
 //        if (projectId == null) {
 //            throw new IllegalArgumentException("TestRail Project ID not specified");

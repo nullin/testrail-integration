@@ -1,20 +1,9 @@
 package com.nullin.testrail;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 import com.nullin.testrail.annotations.TestRailCase;
-import com.nullin.testrail.client.ClientException;
-import com.nullin.testrail.client.TestRailClient;
-import com.nullin.testrail.dto.Plan;
-import com.nullin.testrail.dto.PlanEntry;
-import com.nullin.testrail.dto.Result;
-import com.nullin.testrail.dto.Suite;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
@@ -26,170 +15,67 @@ import org.testng.ITestResult;
  */
 public class TestRailListener implements ITestListener {
 
-    private TestRailListenerArgs args;
-    private TestRailClient client;
-    private Boolean enabled;
-    private Map<String, Integer> suiteMap;
-    private Plan plan;
+    private Logger logger = Logger.getLogger(TestRailListener.class.getName());
 
-    //ensures that only one instance of this listener is running
-    private static AtomicBoolean initialized = new AtomicBoolean(false);
+    private TestRailReporter reporter;
 
-    public TestRailListener() throws IOException, ClientException {
-        if (initialized.get()) {
-            throw new IllegalStateException("TestRail listener already initialized. " +
-                    "Multiple instances of this listener are not allowed. Please check your configuration.");
-        }
-        initialized.set(true);
-        args = TestRailListenerArgs.getNewTestRailListenerArgs();
-        enabled = args.getEnabled();
-
-        if (enabled != null && enabled) {
-            client = new TestRailClient(args.getUrl(), args.getUsername(), args.getPassword());
-
-            //TODO: check that we are able to login
-
-
-            //prepare the test plan and stuff
-            int projectId = args.getProjectId();
-            suiteMap = getSuiteMap(client.getSuites(projectId));
-
-            if (args.getTestPlanId() != null) {
-                //Check TestRunId is valid if specified
-                plan = client.getPlan(args.getTestPlanId());
-            } else {
-                //create a new test run
-                //TODO: add args for test run name + milestone id
-                plan = client.addPlan(projectId, "Test Plan " + new Date(), null);
-            }
-        }
-    }
-
-    private Map<String, Integer> getSuiteMap(List<Suite> suites) {
-        Map<String, Integer> suiteMap = new HashMap<String, Integer>(suites.size());
-        for (Suite suite : suites) {
-            suiteMap.put(suite.name, suite.id);
-        }
-        return suiteMap;
-    }
-
-    private PlanEntry findPlanEntry(List<PlanEntry> entries, int suiteId) {
-        for (PlanEntry planEntry : entries) {
-            if (planEntry.suiteId == suiteId) {
-                return planEntry;
-            }
-        }
-        return null;
-    }
-
-    private void reportReult(ITestResult result) {
-        if (enabled == null || !enabled) {
-            return; //do nothing
-        }
-
-        Class clazz = result.getTestClass().getRealClass();
-//        TestRailClass trClass = (TestRailClass) clazz.getAnnotation(TestRailClass.class);
-//        if (trClass == null) {
-//            TODO: log to file
-//            return; //nothing more to do
-//        }
-
-        String suiteName = null;//trClass.suiteName(); //TODO
-        Integer suiteId = suiteMap.get(suiteName);
-
-        if (suiteId == null) {
-            //TODO: log to file
-            return; //nothing more to do
-        }
-
-        Method method = result.getMethod().getConstructorOrMethod().getMethod();
-        TestRailCase trCase = method.getAnnotation(TestRailCase.class);
-        if (trCase == null) {
-            //TODO: log to file
-            return; //nothing more to do
-        }
-
-        String classname = result.getTestClass().getName();
-        String methodname = result.getMethod().getMethodName();
-        String id = classname + "#" + methodname;
-        Object[] params = result.getParameters();
-        String firstParam = null;
-        if (params != null && params.length > 0) {
-            id += "(" + params[0] + ")";
-            firstParam = String.valueOf(params[0]);
-        }
-        int status = result.getStatus();
-        Throwable throwable = result.getThrowable();
-        String exception = throwable == null ? null : throwable.toString();
-
-        String caseIdStr = null; //trCase.caseId(); //TODO
-        if (caseIdStr == null || caseIdStr.isEmpty()) {
-            //case id not specified on method, check if this is a DD method
-            if (trCase.dataDriven()) {
-                if (firstParam == null) {
-                    //TODO: log to file
-                    return; //nothing more to do
-                }
-                caseIdStr = firstParam;
-            } else {
-                //TODO: log to file
-                return; //nothing more to do
-            }
-        }
-
-        Integer caseId = null;
-        try {
-            caseId = Integer.valueOf(caseIdStr);
-        } catch (NumberFormatException ex) {
-            //TODO: log to file
-            return; //nothing more to do
-        }
-
-        if (caseId == null) {
-            //TODO: log to file
-            return; //nothing more to do
-        }
-
-        try {
-            plan = client.getPlan(plan.id);
-
-            PlanEntry planEntry = findPlanEntry(plan.entries, suiteId);
-            if (planEntry == null) {
-                //we didn't find one for this suite, so we are adding it
-                planEntry = client.addPlanEntry(plan.id, suiteId);
-            }
-
-            //associated test run id
-            int runId = planEntry.runs.get(0).id;
-
-            String comment = "Test Passed";
-            if (status == ITestResult.FAILURE
-                    || status == ITestResult.SUCCESS_PERCENTAGE_FAILURE) {
-                comment = exception;
-            }
-
-            Result trResult = client.addResultForCase(runId, caseId, getStatus(status), comment);
-        } catch(Exception ex) {
-
-        }
+    public TestRailListener() {
+        reporter = TestRailReporter.getInstance();
     }
 
     /**
-     * @param status TestNG specific status code
-     * @return TestRail specific status IDs
+     * Reports the result for the test method to TestRail
+     * @param result TestNG test result
      */
-    private int getStatus(int status) {
-        switch (status) {
-            case ITestResult.SUCCESS:
-                return 1; //Passed
-            case ITestResult.FAILURE:
-                return 5; //Failed
-            case ITestResult.SKIP:
-                return 2; //Blocked
-            case ITestResult.SUCCESS_PERCENTAGE_FAILURE:
-                return 5; //Failed
-            default:
-                return 3; //Untested
+    private void reportResult(ITestResult result) {
+        if (!reporter.isEnabled()) {
+            return; //do nothing
+        }
+
+        try {
+            Method method = result.getMethod().getConstructorOrMethod().getMethod();
+            String className = result.getTestClass().getName();
+            String methodName = result.getMethod().getMethodName();
+            String id = className + "#" + methodName;
+            Object[] params = result.getParameters();
+            String firstParam = null;
+            if (params != null && params.length > 0) {
+                id += "(" + params[0] + ")";
+                firstParam = String.valueOf(params[0]);
+            }
+            int status = result.getStatus();
+            Throwable throwable = result.getThrowable();
+
+            TestRailCase trCase = method.getAnnotation(TestRailCase.class);
+            if (trCase == null) {
+                logger.severe(String.format("Test case %s is not annotated with TestRailCase annotation. " +
+                        "Result not reported", id));
+                return; //nothing more to do
+            }
+
+            String automationId = trCase.automationId();
+            if (automationId == null || automationId.isEmpty()) {
+                //case id not specified on method, check if this is a DD method
+                if (trCase.dataDriven()) {
+                    if (firstParam == null) {
+                        logger.severe("Didn't find the first parameter for DD test " + id + ". Result not reported.");
+                        return; //nothing more to do
+                    }
+                    automationId = firstParam;
+                } else if (!trCase.selfReporting()) {
+                    //self reporting test cases are responsible of reporting results on their own
+                    logger.warning("Didn't find automation id and nor is the test self reporting for test " + id +
+                            ". Please check test configuration.");
+                    return; //nothing more to do
+                } else {
+                    return; //nothing to do as the test is marked as self reporting
+                }
+            }
+
+            reporter.reportResult(automationId, status, throwable);
+        } catch(Exception ex) {
+            //only log and do nothing else
+            logger.severe("Ran into exception " + ex.getMessage());
         }
     }
 
@@ -200,17 +86,17 @@ public class TestRailListener implements ITestListener {
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        reportReult(result);
+        reportResult(result);
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        reportReult(result);
+        reportResult(result);
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        reportReult(result);
+        reportResult(result);
     }
 
     @Override
