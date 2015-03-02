@@ -64,7 +64,7 @@ public class TestRailListener implements ITestListener {
                     automationId = firstParam;
                 } else if (!trCase.selfReporting()) {
                     //self reporting test cases are responsible of reporting results on their own
-                    logger.warning("Didn't find automation id and nor is the test self reporting for test " + id +
+                    logger.warning("Didn't find automation id nor is the test self reporting for test " + id +
                             ". Please check test configuration.");
                     return; //nothing more to do
                 } else {
