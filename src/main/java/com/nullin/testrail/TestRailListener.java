@@ -7,6 +7,7 @@ import com.nullin.testrail.annotations.TestRailCase;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
+import org.testng.annotations.Test;
 
 /**
  * A TestNG listener to report results to TestRail instance
@@ -47,22 +48,27 @@ public class TestRailListener implements ITestListener {
             Throwable throwable = result.getThrowable();
 
             TestRailCase trCase = method.getAnnotation(TestRailCase.class);
+            Test test = method.getAnnotation(Test.class);
+            String automationId;
             if (trCase == null) {
-                logger.severe(String.format("Test case %s is not annotated with TestRailCase annotation. " +
-                        "Result not reported", id));
-                return; //nothing more to do
-            }
-
-            String automationId = trCase.automationId();
-            if (automationId == null || automationId.isEmpty()) {
-                //case id not specified on method, check if this is a DD method
-                if (trCase.dataDriven()) {
+                if (null != test.dataProvider() && !test.dataProvider().isEmpty()) {
                     if (firstParam == null) {
                         logger.severe("Didn't find the first parameter for DD test " + id + ". Result not reported.");
                         return; //nothing more to do
                     }
                     automationId = firstParam;
-                } else if (!trCase.selfReporting()) {
+                } else {
+                    logger.severe(String.format("Test case %s is not annotated with TestRailCase annotation. " +
+                            "Result not reported", id));
+                    return; //nothing more to do
+                }
+            } else {
+                automationId = trCase.automationId();
+            }
+
+            if (automationId == null || automationId.isEmpty()) {
+                //case id not specified on method, check if this is a DD method
+                if (!trCase.selfReporting()) {
                     //self reporting test cases are responsible of reporting results on their own
                     logger.warning("Didn't find automation id nor is the test self reporting for test " + id +
                             ". Please check test configuration.");

@@ -27,7 +27,7 @@ public class TestClassA {
         };
     }
 
-    @TestRailCase(dataDriven = true)
+    //@TestRailCase(dataDriven = true)
     @Test(dataProvider = "MYDP")
     public void test2(String testId, int x, int y) {
         Assert.assertTrue(getResult(x, y));
