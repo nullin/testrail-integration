@@ -1,4 +1,4 @@
-package com.nullin.testrail.extra;
+package com.nullin.testrail.internal;
 
 import java.io.IOException;
 import java.util.HashMap;
