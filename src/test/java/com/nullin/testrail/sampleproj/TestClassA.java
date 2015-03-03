@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
  */
 public class TestClassA {
 
-    @TestRailCase(automationId = "testA1")
+    @TestRailCase("testA1")
     @Test
     public void test1() {
         Assert.assertTrue(getResult(10, 2));

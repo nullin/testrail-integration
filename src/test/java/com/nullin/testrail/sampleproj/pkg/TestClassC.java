@@ -13,13 +13,13 @@ import org.testng.annotations.Test;
  */
 public class TestClassC {
 
-    @TestRailCase(automationId = "testC1")
+    @TestRailCase("testC1")
     @Test
     public void test1() {
         // do nothing always passes
     }
 
-    @TestRailCase(automationId = "testC2")
+    @TestRailCase("testC2")
     @Test
     public void test4() {
         Assert.fail("Always fails!!");

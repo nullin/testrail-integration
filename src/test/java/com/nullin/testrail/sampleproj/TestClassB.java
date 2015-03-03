@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
  */
 public class TestClassB {
 
-    @TestRailCase(automationId = "testB1")
+    @TestRailCase("testB1")
     @Test
     public void test1() {
         // do nothing always passes

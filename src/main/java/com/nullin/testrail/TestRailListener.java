@@ -63,7 +63,7 @@ public class TestRailListener implements ITestListener {
                     return; //nothing more to do
                 }
             } else {
-                automationId = trCase.automationId();
+                automationId = trCase.value();
             }
 
             if (automationId == null || automationId.isEmpty()) {
