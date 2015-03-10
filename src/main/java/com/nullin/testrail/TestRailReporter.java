@@ -102,6 +102,10 @@ public class TestRailReporter {
         List<Case> cases = client.getCases(run.projectId, run.suiteId, 0, null);
         Map<String, Integer> lookupMap = new HashMap<String, Integer>();
         for (Case c : cases) {
+            if (c.automationId == null || c.automationId.isEmpty()) {
+                continue; //ignore empty automation IDs
+            }
+
             if (lookupMap.get(c.automationId) != null) {
                 logger.severe("Found multiple tests cases with same automation id. " +
                         "Case Ids " + lookupMap.get(c.automationId) + " & " + c.id);
