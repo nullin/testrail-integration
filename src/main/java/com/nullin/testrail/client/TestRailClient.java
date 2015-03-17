@@ -164,11 +164,14 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpGet("get_plan/" + planId), Plan.class);
     }
 
-    public Plan addPlan(int projectId, String name, Integer milestoneId) throws IOException, ClientException {
+    public Plan addPlan(int projectId, String name, Integer milestoneId, List<PlanEntry> entries) throws IOException, ClientException {
         Map<String, String> body = new HashMap<String, String>();
         body.put("name", name);
         if (milestoneId != null) {
             body.put("milestone_id", String.valueOf(milestoneId));
+        }
+        if (entries != null) {
+            body.put("entries", objectMapper.writeValueAsString(entries));
         }
         return objectMapper.readValue(
                 client.invokeHttpPost("add_plan/" + projectId, objectMapper.writeValueAsString(body)), Plan.class);
