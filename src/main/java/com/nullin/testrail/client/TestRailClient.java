@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.nullin.testrail.dto.Case;
 import com.nullin.testrail.dto.Plan;
 import com.nullin.testrail.dto.PlanEntry;
@@ -47,6 +49,8 @@ public class TestRailClient {
     public TestRailClient(String url, String username, String password) {
         client = new APIClient(url, username, password);
         objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         //TODO: should probably remove this
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
@@ -165,13 +169,13 @@ public class TestRailClient {
     }
 
     public Plan addPlan(int projectId, String name, Integer milestoneId, List<PlanEntry> entries) throws IOException, ClientException {
-        Map<String, String> body = new HashMap<String, String>();
+        Map<String, Object> body = new HashMap<String, Object>();
         body.put("name", name);
         if (milestoneId != null) {
             body.put("milestone_id", String.valueOf(milestoneId));
         }
         if (entries != null) {
-            body.put("entries", objectMapper.writeValueAsString(entries));
+            body.put("entries", entries);
         }
         return objectMapper.readValue(
                 client.invokeHttpPost("add_plan/" + projectId, objectMapper.writeValueAsString(body)), Plan.class);
