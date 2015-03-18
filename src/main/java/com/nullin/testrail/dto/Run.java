@@ -11,14 +11,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class Run {
 
-    public int id;
+    public Integer id;
     @JsonProperty("project_id")
     public Integer projectId;
     @JsonProperty("suite_id")
-    public int suiteId;
+    public Integer suiteId;
     @JsonProperty("plan_id")
     public Integer planId;
     public String name;
+    @JsonProperty("assignedto_id")
+    public Integer assignedTo;
+    @JsonProperty("include_all")
+    public boolean includeAll;
+    @JsonProperty("case_ids")
+    public List<Integer> caseIds;
     @JsonProperty("config_ids")
     public List<Integer> configIds;
 

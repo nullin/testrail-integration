@@ -16,5 +16,13 @@ public class PlanEntry {
     public int suiteId;
     public String name;
     public List<Run> runs;
+    @JsonProperty("assignedto_id")
+    public Integer assignedTo;
+    @JsonProperty("include_all")
+    public boolean includeAll;
+    @JsonProperty("case_ids")
+    public List<Integer> caseIds;
+    @JsonProperty("config_ids")
+    public List<Integer> configIds;
 
 }
