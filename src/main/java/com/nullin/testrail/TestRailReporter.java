@@ -14,18 +14,16 @@ import com.nullin.testrail.dto.Case;
 import com.nullin.testrail.dto.Plan;
 import com.nullin.testrail.dto.PlanEntry;
 import com.nullin.testrail.dto.Run;
-import org.testng.ITestResult;
 
 /**
- * A TestNG listener to report results to TestRail instance
+ * This class is responsible with communicating with TestRail and reporting results to it.
+ *
+ * It's invoked by {@link com.nullin.testrail.TestRailListener} and has methods that can be
+ * directly invoked from the test code as well.
  *
  * @author nullin
  */
 public class TestRailReporter {
-
-    public enum ResultStatus {
-        PASS, FAIL, SKIP
-    }
 
     private Logger logger = Logger.getLogger(TestRailReporter.class.getName());
     private TestRailArgs args;
@@ -117,10 +115,31 @@ public class TestRailReporter {
     }
 
     /**
-     * Reports the result for the test method to TestRail
+     * Reports the result to TestRail
+     *
+     * @param automationId automation id of the test case
+     * @param resultStatus status of the test after execution (or attempted execution)
+     * @param throwable Any associated exception, only reported if the result status
+     *                  is {@link com.nullin.testrail.ResultStatus#FAIL}
      *
      */
     public void reportResult(String automationId, ResultStatus resultStatus, Throwable throwable) {
+        reportResult(automationId, resultStatus, throwable, null);
+    }
+
+    /**
+     * Reports the result to TestRail
+     *
+     * @param automationId automation id of the test case
+     * @param resultStatus status of the test after execution (or attempted execution)
+     * @param throwable Any associated exception, only reported if the result status
+     *                  is {@link com.nullin.testrail.ResultStatus#FAIL}
+     * @param screenshotUrl URL to a screenshot if one was captured and uploaded to an external server.
+     *                      This URL will be encapsulated in the associated test comment to display the
+     *                      screenshot for tests with result status as {@link com.nullin.testrail.ResultStatus#FAIL}
+     *
+     */
+    public void reportResult(String automationId, ResultStatus resultStatus, Throwable throwable, String screenshotUrl) {
         if (!enabled) {
             return; //do nothing
         }
@@ -139,40 +158,12 @@ public class TestRailReporter {
                 comment = os.toString();
             }
 
+            if (screenshotUrl != null && !screenshotUrl.isEmpty()) {
+                comment = "![](" + screenshotUrl + ")\n\n" + comment;
+            }
+
             //add the result
             client.addResultForCase(run.id, caseId, getStatus(resultStatus), comment);
-        } catch(Exception ex) {
-            //only log and do nothing else
-            logger.severe("Ran into exception " + ex.getMessage());
-        }
-    }
-
-    /**
-     * Reports the result for the test method to TestRail
-     *
-     */
-    public void reportResult(String automationId, int status, Throwable throwable) {
-        if (!enabled) {
-            return; //do nothing
-        }
-
-        try {
-            Integer caseId = caseIdLookupMap.get(automationId);
-            if (caseId == null) {
-                logger.severe("Didn't find case id for test with automation id " + automationId);
-                return; //nothing more to do
-            }
-
-            String comment = null;
-            if (status == ITestResult.FAILURE
-                    || status == ITestResult.SUCCESS_PERCENTAGE_FAILURE) {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                throwable.printStackTrace(new PrintStream(os));
-                comment = os.toString();
-            }
-
-            //add the result
-            client.addResultForCase(run.id, caseId, getStatus(status), comment);
         } catch(Exception ex) {
             //only log and do nothing else
             logger.severe("Ran into exception " + ex.getMessage());
@@ -191,25 +182,6 @@ public class TestRailReporter {
                 return 5; //Failed
             case SKIP:
                 return 2; //Blocked
-            default:
-                return 3; //Untested
-        }
-    }
-
-    /**
-     * @param status TestNG specific status code
-     * @return TestRail specific status IDs
-     */
-    private int getStatus(int status) {
-        switch (status) {
-            case ITestResult.SUCCESS:
-                return 1; //Passed
-            case ITestResult.FAILURE:
-                return 5; //Failed
-            case ITestResult.SKIP:
-                return 2; //Blocked
-            case ITestResult.SUCCESS_PERCENTAGE_FAILURE:
-                return 5; //Failed
             default:
                 return 3; //Untested
         }

@@ -78,7 +78,7 @@ public class TestRailListener implements ITestListener {
                 }
             }
 
-            reporter.reportResult(automationId, status, throwable);
+            reporter.reportResult(automationId, getStatus(status), throwable, getScreenshotUrl(result));
         } catch(Exception ex) {
             //only log and do nothing else
             logger.severe("Ran into exception " + ex.getMessage());
@@ -118,6 +118,38 @@ public class TestRailListener implements ITestListener {
     @Override
     public void onFinish(ITestContext context) {
         //nothing here
+    }
+
+    /**
+     * TestRail currently doesn't support uploading screenshots via APIs. Suggested method is
+     * to upload screenshots to another server and provide a URL in the test comments.
+     *
+     * This method should be overridden in a sub-class to provide the URL for the screenshot.
+     *
+     * @param result result of test execution
+     * @return the URL to where the screenshot can be accessed
+     */
+    public String getScreenshotUrl(ITestResult result) {
+        return null; //should be extended & overridden if needed
+    }
+
+    /**
+     * @param status TestNG specific status code
+     * @return TestRail specific status IDs
+     */
+    private ResultStatus getStatus(int status) {
+        switch (status) {
+            case ITestResult.SUCCESS:
+                return ResultStatus.PASS;
+            case ITestResult.FAILURE:
+                return ResultStatus.FAIL;
+            case ITestResult.SUCCESS_PERCENTAGE_FAILURE:
+                return ResultStatus.FAIL;
+            case ITestResult.SKIP:
+                return ResultStatus.SKIP;
+            default:
+                return ResultStatus.UNTESTED;
+        }
     }
 
 }

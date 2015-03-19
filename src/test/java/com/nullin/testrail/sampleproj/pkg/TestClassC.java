@@ -2,6 +2,7 @@ package com.nullin.testrail.sampleproj.pkg;
 
 import java.io.IOException;
 
+import com.nullin.testrail.ResultStatus;
 import com.nullin.testrail.TestRailReporter;
 import com.nullin.testrail.annotations.TestRailCase;
 import org.testng.Assert;
@@ -28,8 +29,8 @@ public class TestClassC {
     @TestRailCase(selfReporting = true)
     @Test
     public void test5() {
-        TestRailReporter.getInstance().reportResult("testC3", TestRailReporter.ResultStatus.PASS, null);
-        TestRailReporter.getInstance().reportResult("testC4", TestRailReporter.ResultStatus.FAIL,
+        TestRailReporter.getInstance().reportResult("testC3", ResultStatus.PASS, null);
+        TestRailReporter.getInstance().reportResult("testC4", ResultStatus.FAIL,
                 new IOException("Something very bad happened!!"));
     }
 }
