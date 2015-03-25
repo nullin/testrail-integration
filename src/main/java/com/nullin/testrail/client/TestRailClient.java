@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.nullin.testrail.dto.Case;
+import com.nullin.testrail.dto.Milestone;
 import com.nullin.testrail.dto.Plan;
 import com.nullin.testrail.dto.PlanEntry;
 import com.nullin.testrail.dto.Result;
@@ -60,115 +61,11 @@ public class TestRailClient {
      */
 
     public Plan getPlan(int planId) throws IOException, ClientException {
-        /*
-        /get_plan/6
-        {
-            "id": 6,
-            "name": "A test plan for 1.9",
-            "description": null,
-            "milestone_id": 1,
-            "assignedto_id": null,
-            "is_completed": false,
-            "completed_on": null,
-            "passed_count": 3,
-            "blocked_count": 5,
-            "untested_count": 12,
-            "retest_count": 0,
-            "failed_count": 0,
-            "custom_status1_count": 2,
-            "custom_status2_count": 0,
-            "custom_status3_count": 0,
-            "custom_status4_count": 0,
-            "custom_status5_count": 0,
-            "custom_status6_count": 0,
-            "custom_status7_count": 0,
-            "project_id": 1,
-            "created_on": 1408648102,
-            "created_by": 1,
-            "url": "https://mytest1010.testrail.com/index.php?/plans/view/6",
-            "entries": [
-                {
-                    "id": "17ed9241-7b20-474a-b66f-72cf11ffe88e",
-                    "suite_id": 1,
-                    "name": "A Test Suite",
-                    "runs": [
-                        {
-                            "id": 10,
-                            "suite_id": 1,
-                            "name": "A Test Suite",
-                            "description": null,
-                            "milestone_id": 1,
-                            "assignedto_id": 1,
-                            "include_all": true,
-                            "is_completed": false,
-                            "completed_on": null,
-                            "passed_count": 3,
-                            "blocked_count": 0,
-                            "untested_count": 4,
-                            "retest_count": 0,
-                            "failed_count": 0,
-                            "custom_status1_count": 2,
-                            "custom_status2_count": 0,
-                            "custom_status3_count": 0,
-                            "custom_status4_count": 0,
-                            "custom_status5_count": 0,
-                            "custom_status6_count": 0,
-                            "custom_status7_count": 0,
-                            "project_id": 1,
-                            "plan_id": 6,
-                            "entry_index": 1,
-                            "entry_id": "17ed9241-7b20-474a-b66f-72cf11ffe88e",
-                            "config": "TupleStore-Off",
-                            "config_ids": [
-                                1
-                            ],
-                            "url": "https://mytest1010.testrail.com/index.php?/runs/view/10"
-                        }
-                    ]
-                },
-                {
-                    "id": "9dc80e1f-df50-4956-89c9-4477c368d5cb",
-                    "suite_id": 1,
-                    "name": "A Test Suite",
-                    "runs": [
-                        {
-                            "id": 11,
-                            "suite_id": 1,
-                            "name": "A Test Suite",
-                            ...
-                            ...
-                        }
-                    ]
-                },
-                {
-                    "id": "7dc87478-504d-4a3e-9fbe-e30913319065",
-                    "suite_id": 2,
-                    "name": "A Test Suite 2",
-                    "runs": [
-                        {
-                            "id": 9,
-                            "suite_id": 2,
-                            "name": "A Test Suite 2",
-                            "description": null,
-                            ...
-                            ...
-                            "project_id": 1,
-                            "plan_id": 6,
-                            "entry_index": 3,
-                            "entry_id": "7dc87478-504d-4a3e-9fbe-e30913319065",
-                            "config": null,
-                            "config_ids": [],
-                            "url": "https://mytest1010.testrail.com/index.php?/runs/view/9"
-                        }
-                    ]
-                }
-            ]
-        }
-         */
         return objectMapper.readValue(client.invokeHttpGet("get_plan/" + planId), Plan.class);
     }
 
-    public Plan addPlan(int projectId, String name, Integer milestoneId, List<PlanEntry> entries) throws IOException, ClientException {
+    public Plan addPlan(int projectId, String name, Integer milestoneId, List<PlanEntry> entries)
+            throws IOException, ClientException {
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("name", name);
         if (milestoneId != null) {
@@ -178,14 +75,16 @@ public class TestRailClient {
             body.put("entries", entries);
         }
         return objectMapper.readValue(
-                client.invokeHttpPost("add_plan/" + projectId, objectMapper.writeValueAsString(body)), Plan.class);
+                client.invokeHttpPost("add_plan/" + projectId, objectMapper.writeValueAsString(body)),
+                Plan.class);
     }
 
     public PlanEntry addPlanEntry(int planId, int suiteId) throws IOException, ClientException {
         Map<String, String> body = new HashMap<String, String>();
         body.put("suite_id", String.valueOf(suiteId));
         return objectMapper.readValue(
-                client.invokeHttpPost("add_plan_entry/" + planId, objectMapper.writeValueAsString(body)), PlanEntry.class);
+                client.invokeHttpPost("add_plan_entry/" + planId, objectMapper.writeValueAsString(body)),
+                PlanEntry.class);
     }
 
     public Plan closePlan(int planId) throws IOException, ClientException {
@@ -209,7 +108,8 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpGet(url), new  TypeReference<List<Result>>(){});
     }
 
-    public Result addResultForCase(int runId, int caseId, int statusId, String comment) throws IOException, ClientException {
+    public Result addResultForCase(int runId, int caseId, int statusId, String comment)
+            throws IOException, ClientException {
         String url = "add_result_for_case/" + runId + "/" + caseId;
         Map<String, String> body = new HashMap<String, String>();
         body.put("status_id", String.valueOf(statusId));
@@ -229,21 +129,24 @@ public class TestRailClient {
     Cases
      */
 
-    public Case addCase(int sectionId, String title, Map<String, String> fields) throws IOException, ClientException {
+    public Case addCase(int sectionId, String title, Map<String, String> fields)
+            throws IOException, ClientException {
         Map<String, String> body = new HashMap<String, String>();
         body.put("title", title);
         if (fields != null) {
             body.putAll(fields);
         }
         return objectMapper.readValue(
-                client.invokeHttpPost("add_case/" + sectionId, objectMapper.writeValueAsString(body)), Case.class);
+                client.invokeHttpPost("add_case/" + sectionId, objectMapper.writeValueAsString(body)),
+                Case.class);
     }
 
     public Case getCase(int caseId) throws IOException, ClientException {
         return objectMapper.readValue(client.invokeHttpGet("get_case/" + caseId), Case.class);
     }
 
-    public List<Case> getCases(int projectId, int suiteId, int sectionId, Map<String, String> filters) throws IOException, ClientException {
+    public List<Case> getCases(int projectId, int suiteId, int sectionId, Map<String, String> filters)
+            throws IOException, ClientException {
         String url = "get_cases/" + projectId;
         if (suiteId > 0) {
             url += "&suite_id=" + suiteId;
@@ -263,7 +166,8 @@ public class TestRailClient {
     Sections
      */
 
-    public Section addSection(int projectId, String name, int parentId, int suiteId) throws IOException, ClientException {
+    public Section addSection(int projectId, String name, int parentId, int suiteId)
+            throws IOException, ClientException {
         Map<String, String> body = new HashMap<String, String>();
         if (suiteId > 0) {
             body.put("suite_id", String.valueOf(suiteId));
@@ -273,7 +177,8 @@ public class TestRailClient {
         }
         body.put("name", name);
         return objectMapper.readValue(
-                client.invokeHttpPost("add_section/" + projectId, objectMapper.writeValueAsString(body)), Section.class);
+                client.invokeHttpPost("add_section/" + projectId, objectMapper.writeValueAsString(body)),
+                Section.class);
     }
 
     /*
@@ -288,42 +193,25 @@ public class TestRailClient {
     }
 
     public Suite getSuite(int suiteId) throws IOException, ClientException {
-        /*
-        /get_suite/1
-        {
-            "id": 1,
-            "name": "A Test Suite",
-            "description": null,
-            "project_id": 1,
-            "url": "https://mytest1010.testrail.com/index.php?/suites/view/1"
-        }
-         */
         return objectMapper.readValue(client.invokeHttpGet("get_suite/" + suiteId), Suite.class);
     }
 
     public List<Suite> getSuites(int projectId) throws IOException, ClientException {
-        /*
-        /get_suites/1
-        [
-            {
-                "id": 1,
-                "name": "A Test Suite",
-                "description": null,
-                "project_id": 1,
-                "url": "https://mytest1010.testrail.com/index.php?/suites/view/1"
-            },
-            {
-                "id": 2,
-                "name": "A Test Suite 2",
-                "description": "Another test suite",
-                "project_id": 1,
-                "url": "https://mytest1010.testrail.com/index.php?/suites/view/2"
-            },
-            ...
-            ...
-        ]
-         */
-        return objectMapper.readValue(client.invokeHttpGet("get_suites/" + projectId), new TypeReference<List<Suite>>(){});
+        return objectMapper.readValue(client.invokeHttpGet("get_suites/" + projectId),
+                new TypeReference<List<Suite>>(){});
+    }
+
+    /*
+    Milestones
+     */
+
+    public Milestone getMilestone(int milestoneId) throws IOException, ClientException {
+        return objectMapper.readValue(client.invokeHttpGet("get_milestone/" + milestoneId), Milestone.class);
+    }
+
+    public List<Milestone> getMilestones(int projectId) throws IOException, ClientException {
+        return objectMapper.readValue(client.invokeHttpGet("get_milestones/" + projectId),
+                new TypeReference<List<Milestone>>(){});
     }
 
     /*
@@ -331,39 +219,6 @@ public class TestRailClient {
      */
 
     public Run getRun(int runId) throws IOException, ClientException {
-        /*
-        /get_run/5
-        {
-            "id": 5,
-            "suite_id": 2,
-            "name": "A Test Suite 2 Run2",
-            "description": null,
-            "milestone_id": 1,
-            "assignedto_id": 1,
-            "include_all": true,
-            "is_completed": false,
-            "completed_on": null,
-            "config": null,
-            "config_ids": [],
-            "passed_count": 1,
-            "blocked_count": 0,
-            "untested_count": 0,
-            "retest_count": 1,
-            "failed_count": 2,
-            "custom_status1_count": 0,
-            "custom_status2_count": 0,
-            "custom_status3_count": 0,
-            "custom_status4_count": 0,
-            "custom_status5_count": 0,
-            "custom_status6_count": 0,
-            "custom_status7_count": 0,
-            "project_id": 1,
-            "plan_id": null,
-            "created_on": 1408647332,
-            "created_by": 1,
-            "url": "https://mytest1010.testrail.com/index.php?/runs/view/5"
-        }
-         */
         return objectMapper.readValue(client.invokeHttpGet("get_run/" + runId), Run.class);
     }
 
