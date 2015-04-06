@@ -1,6 +1,8 @@
 package com.nullin.testrail;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import com.nullin.testrail.annotations.TestRailCase;
@@ -78,7 +80,12 @@ public class TestRailListener implements ITestListener {
                 }
             }
 
-            reporter.reportResult(automationId, getStatus(status), throwable, getScreenshotUrl(result));
+            Map<String, Object> props = new HashMap<String, Object>();
+            props.put("elapsed", ((result.getEndMillis() - result.getStartMillis()) / 1000) + "s");
+            props.put("status", getStatus(status));
+            props.put("throwable", throwable);
+            props.put("screenshotUrl", getScreenshotUrl(result));
+            reporter.reportResult(automationId, props);
         } catch(Exception ex) {
             //only log and do nothing else
             logger.severe("Ran into exception " + ex.getMessage());

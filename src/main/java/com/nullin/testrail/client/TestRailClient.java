@@ -117,6 +117,12 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpPost(url, objectMapper.writeValueAsString(body)), Result.class);
     }
 
+    public Result addResultForCase(int runId, int caseId, Map<String, Object> properties)
+            throws IOException, ClientException {
+        String url = "add_result_for_case/" + runId + "/" + caseId;
+        return objectMapper.readValue(client.invokeHttpPost(url, objectMapper.writeValueAsString(properties)), Result.class);
+    }
+
     /*
     Tests
      */
@@ -160,6 +166,23 @@ public class TestRailClient {
             }
         }
         return objectMapper.readValue(client.invokeHttpGet(url), new TypeReference<List<Case>>(){});
+    }
+
+    public List<Map<String, Object>> getCasesAsMap(int projectId, int suiteId, int sectionId, Map<String, String> filters)
+                throws IOException, ClientException {
+        String url = "get_cases/" + projectId;
+        if (suiteId > 0) {
+            url += "&suite_id=" + suiteId;
+        }
+        if (sectionId > 0) {
+            url += "&section_id=" + sectionId;
+        }
+        if (filters != null) {
+            for (Map.Entry<String, String> entry : filters.entrySet()) {
+                url += "&" + entry.getKey() + "=" + entry.getValue();
+            }
+        }
+        return objectMapper.readValue(client.invokeHttpGet(url), new TypeReference<List<Map<String, Object>>>(){});
     }
 
     /*

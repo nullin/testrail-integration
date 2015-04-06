@@ -123,6 +123,7 @@ public class TestRailReporter {
      *                  is {@link com.nullin.testrail.ResultStatus#FAIL}
      *
      */
+    @Deprecated
     public void reportResult(String automationId, ResultStatus resultStatus, Throwable throwable) {
         reportResult(automationId, resultStatus, throwable, null);
     }
@@ -139,10 +140,24 @@ public class TestRailReporter {
      *                      screenshot for tests with result status as {@link com.nullin.testrail.ResultStatus#FAIL}
      *
      */
+    @Deprecated
     public void reportResult(String automationId, ResultStatus resultStatus, Throwable throwable, String screenshotUrl) {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put("status", resultStatus);
+        properties.put("throwable", throwable);
+        properties.put("screenshotUrl", screenshotUrl);
+        reportResult(automationId, properties);
+    }
+
+    public void reportResult(String automationId, Map<String, Object> properties) {
         if (!enabled) {
             return; //do nothing
         }
+
+        ResultStatus resultStatus = (ResultStatus)properties.get("status");
+        Throwable throwable = (Throwable)properties.get("throwable");
+        String elapsed = (String)properties.get("elapsed");
+        String screenshotUrl = (String)properties.get("screenshotUrl");
 
         try {
             Integer caseId = caseIdLookupMap.get(automationId);
@@ -163,7 +178,11 @@ public class TestRailReporter {
             }
 
             //add the result
-            client.addResultForCase(run.id, caseId, getStatus(resultStatus), comment);
+            Map<String, Object> body = new HashMap<String, Object>();
+            body.put("status_id", getStatus(resultStatus));
+            body.put("comment", comment);
+            body.put("elapsed", elapsed);
+            client.addResultForCase(run.id, caseId, body);
         } catch(Exception ex) {
             //only log and do nothing else
             logger.severe("Ran into exception " + ex.getMessage());
