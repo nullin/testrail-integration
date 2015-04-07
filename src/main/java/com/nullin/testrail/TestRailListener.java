@@ -27,7 +27,7 @@ public class TestRailListener implements ITestListener {
         try {
             reporter = TestRailReporter.getInstance();
             enabled = reporter.isEnabled();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             logger.severe("Ran into exception initializing reporter: " + ex.getMessage());
         }
     }
