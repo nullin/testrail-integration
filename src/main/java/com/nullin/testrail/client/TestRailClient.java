@@ -131,6 +131,10 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpGet("get_test/" + testId), Test.class);
     }
 
+    public List<Test> getTests(int runId) throws IOException, ClientException {
+        return objectMapper.readValue(client.invokeHttpGet("get_tests/" + runId), new TypeReference<List<Test>>(){});
+    }
+
     /*
     Cases
      */

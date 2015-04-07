@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Arugments for {@link com.nullin.testrail.TestRailListener}
+ * Arguments for {@link com.nullin.testrail.TestRailListener}
  *
  * @author nullin
  */
@@ -12,8 +12,6 @@ public class TestRailArgs {
 
     //if the listener is enabled or not
     private Boolean enabled;
-//    //project id
-//    private Integer projectId;
     //test plan id (if one already exists)
     private Integer testPlanId;
     //suite names
@@ -34,17 +32,6 @@ public class TestRailArgs {
         if (args.enabled == null || !args.enabled) {
             return args; //no need to process further. TestRail reporting is not enabled
         }
-
-//        String projectId = System.getProperty("testRail.projectId");
-//        if (projectId == null) {
-//            throw new IllegalArgumentException("TestRail Project ID not specified");
-//        } else {
-//            try {
-//                args.projectId = Integer.valueOf(projectId);
-//            } catch(NumberFormatException ex) {
-//                throw new IllegalArgumentException("Project Id is not an integer as expected");
-//            }
-//        }
 
         String planId = System.getProperty("testRail.testPlanId");
         if (planId == null) {
@@ -91,10 +78,6 @@ public class TestRailArgs {
     public Boolean getEnabled() {
         return enabled;
     }
-
-//    public Integer getProjectId() {
-//        return projectId;
-//    }
 
     public Integer getTestPlanId() {
         return testPlanId;

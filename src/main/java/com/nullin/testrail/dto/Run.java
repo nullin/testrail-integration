@@ -27,5 +27,6 @@ public class Run {
     public List<Integer> caseIds;
     @JsonProperty("config_ids")
     public List<Integer> configIds;
+    public String config;
 
 }

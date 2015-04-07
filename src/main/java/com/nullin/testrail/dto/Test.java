@@ -16,5 +16,9 @@ public class Test {
     public int status_id;
     @JsonProperty("run_id")
     public int runId;
+    //following property is not present in TestRail by default
+    //we need to add it as a custom field
+    @JsonProperty("custom_automation_id")
+    public String automationId;
 
 }

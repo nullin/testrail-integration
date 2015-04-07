@@ -4,8 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.nullin.testrail.client.ClientException;
@@ -14,6 +16,7 @@ import com.nullin.testrail.dto.Case;
 import com.nullin.testrail.dto.Plan;
 import com.nullin.testrail.dto.PlanEntry;
 import com.nullin.testrail.dto.Run;
+import com.nullin.testrail.dto.Test;
 
 /**
  * This class is responsible with communicating with TestRail and reporting results to it.
@@ -28,9 +31,10 @@ public class TestRailReporter {
     private Logger logger = Logger.getLogger(TestRailReporter.class.getName());
     private TestRailArgs args;
     private TestRailClient client;
-    private Run run;
     private Map<String, Integer> caseIdLookupMap;
+    private Map<String, Integer> testToRunIdMap;
     private Boolean enabled;
+    private String config;
 
     private static class Holder {
         private static final TestRailReporter INSTANCE = new TestRailReporter();
@@ -66,20 +70,47 @@ public class TestRailReporter {
             //prepare the test plan and stuff
             Plan plan = client.getPlan(args.getTestPlanId());
 
+            /*
+            We will make an assumption that the plan can contains multiple entries, but all the
+            entries would be associated with the same suite. This helps simplify the automated
+            reporting of results.
+
+            Another assumption is that a test with a given automation id will not re-appear twice
+            for the same configuration set. Multiple instances of the same configuration set
+            is possible. If same automation id and configuration set combination is repeated, the
+            result would only be reported once.
+             */
+            Set<Integer> suiteIdSet = new HashSet<Integer>();
+            List<PlanEntry> planEntries = plan.entries;
+
+            int projectId = 0;
+            int suiteId = 0;
+            testToRunIdMap = new HashMap<String, Integer>();
+            for (PlanEntry entry : planEntries) {
+                suiteIdSet.add(suiteId = entry.suiteId);
+                for (Run run : entry.runs) {
+                    projectId = run.projectId;
+                    List<Test> tests = client.getTests(run.id);
+                    for (Test test : tests) {
+                        testToRunIdMap.put(test.automationId + run.config, run.id);
+                    }
+                }
+            }
+
+            caseIdLookupMap = cacheCaseIdLookupMap(client, projectId, suiteId);
+
             //check some constraints
-            if (plan.entries.size() != 1) {
-                throw new IllegalStateException("Referenced plan " + plan.id + " has multiple test suites." +
-                        " This configuration is currently not supported.");
+            if (suiteIdSet.size() != 1) {
+                throw new IllegalStateException("Referenced plan " + plan.id + " has multiple test suites (" +
+                        suiteIdSet + "). This configuration is currently not supported.");
             }
 
-            PlanEntry planEntry = plan.entries.get(0);
-            if (planEntry.runs.size() != 1) {
-                throw new IllegalStateException("Referenced plan " + plan.id + " has multiple test runs for the same suite." +
-                        " This configuration is currently not supported.");
-            }
-
-            run = planEntry.runs.get(0);
-            caseIdLookupMap = cacheCaseIdLookupMap(client, run);
+            /*
+             This should be specified when starting the JVM for test execution. It should match exactly at least
+             one of the configurations used in the test runs. This, along with the automation id of the test
+             are used to identify the run id.
+             */
+            config = System.getProperty("testRail.runConfig");
         } catch(Exception ex) {
             //wrap in a Runtime and throw again
             //why? because we don't want to handle it and we want
@@ -92,12 +123,13 @@ public class TestRailReporter {
      * Gets all the test cases associated with the test run and caches a map of the
      * associated automation id's to the case ids
      *
-     * @param run
-     * @return
+     * @param projectId
+     * @param suiteId
+     * @return Map with keys as automation ids and corresponding values as the case ids.
      */
-    private Map<String, Integer> cacheCaseIdLookupMap(TestRailClient client, Run run)
+    private Map<String, Integer> cacheCaseIdLookupMap(TestRailClient client, int projectId, int suiteId)
             throws IOException, ClientException {
-        List<Case> cases = client.getCases(run.projectId, run.suiteId, 0, null);
+        List<Case> cases = client.getCases(projectId, suiteId, 0, null);
         Map<String, Integer> lookupMap = new HashMap<String, Integer>();
         for (Case c : cases) {
             if (c.automationId == null || c.automationId.isEmpty()) {
@@ -182,7 +214,13 @@ public class TestRailReporter {
             body.put("status_id", getStatus(resultStatus));
             body.put("comment", comment);
             body.put("elapsed", elapsed);
-            client.addResultForCase(run.id, caseId, body);
+
+            Integer runId = testToRunIdMap.get(automationId + config);
+            if (runId == null) {
+                throw new IllegalArgumentException("Unable to find run id for test with automation id "
+                        + automationId + " and configuration set as " + config);
+            }
+            client.addResultForCase(runId, caseId, body);
         } catch(Exception ex) {
             //only log and do nothing else
             logger.severe("Ran into exception " + ex.getMessage());
