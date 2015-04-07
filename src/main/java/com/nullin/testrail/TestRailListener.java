@@ -21,9 +21,15 @@ public class TestRailListener implements ITestListener {
     private Logger logger = Logger.getLogger(TestRailListener.class.getName());
 
     private TestRailReporter reporter;
+    private boolean enabled;
 
     public TestRailListener() {
-        reporter = TestRailReporter.getInstance();
+        try {
+            reporter = TestRailReporter.getInstance();
+            enabled = reporter.isEnabled();
+        } catch (Exception ex) {
+            logger.severe("Ran into exception initializing reporter: " + ex.getMessage());
+        }
     }
 
     /**
@@ -31,7 +37,7 @@ public class TestRailListener implements ITestListener {
      * @param result TestNG test result
      */
     private void reportResult(ITestResult result) {
-        if (!reporter.isEnabled()) {
+        if (!enabled) {
             return; //do nothing
         }
 
