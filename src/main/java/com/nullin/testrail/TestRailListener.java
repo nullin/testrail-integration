@@ -88,7 +88,9 @@ public class TestRailListener implements ITestListener {
             }
 
             Map<String, Object> props = new HashMap<String, Object>();
-            props.put("elapsed", ((result.getEndMillis() - result.getStartMillis()) / 1000) + "s");
+            long elapsed = (result.getEndMillis() - result.getStartMillis()) / 1000;
+            elapsed = elapsed == 0 ? 1 : elapsed; //we can only track 1 second as the smallest unit
+            props.put("elapsed",  elapsed + "s");
             props.put("status", getStatus(status));
             props.put("throwable", throwable);
             props.put("screenshotUrl", getScreenshotUrl(result));

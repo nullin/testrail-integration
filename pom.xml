@@ -4,7 +4,7 @@
 
     <groupId>com.nullin</groupId>
     <artifactId>testrail-connector</artifactId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>testrailConnector</name>
