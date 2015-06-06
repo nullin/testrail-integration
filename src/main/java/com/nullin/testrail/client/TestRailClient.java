@@ -65,6 +65,17 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpGet("get_plan/" + planId), Plan.class);
     }
 
+    public List<Plan> getPlans(int projectId, Map<String, String> filters)
+               throws IOException, ClientException {
+           String url = "get_plans/" + projectId;
+           if (filters != null) {
+               for (Map.Entry<String, String> entry : filters.entrySet()) {
+                   url += "&" + entry.getKey() + "=" + entry.getValue();
+               }
+           }
+           return objectMapper.readValue(client.invokeHttpGet(url), new TypeReference<List<Plan>>(){});
+       }
+
     public Plan addPlan(int projectId, String name, Integer milestoneId, List<PlanEntry> entries)
             throws IOException, ClientException {
         Map<String, Object> body = new HashMap<String, Object>();
