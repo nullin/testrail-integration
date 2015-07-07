@@ -3,6 +3,9 @@ package com.nullin.testrail;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -202,7 +205,7 @@ public class TestRailReporter {
             if (resultStatus.equals(ResultStatus.FAIL)) {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 throwable.printStackTrace(new PrintStream(os));
-                comment = os.toString();
+                comment = new String(os.toByteArray(), "UTF-8");
             }
 
             if (screenshotUrl != null && !screenshotUrl.isEmpty()) {
