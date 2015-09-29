@@ -258,6 +258,16 @@ public class TestRailClient {
                 new TypeReference<List<Milestone>>(){});
     }
 
+    public Milestone addMilestone(int projectId, String name, String description) throws IOException, ClientException {
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("name", name);
+        if (description != null) {
+            body.put("description", description);
+        }
+        return objectMapper.readValue(
+                client.invokeHttpPost("add_milestone/" + projectId, objectMapper.writeValueAsString(body)), Milestone.class);
+    }
+
     /*
     Runs
      */
