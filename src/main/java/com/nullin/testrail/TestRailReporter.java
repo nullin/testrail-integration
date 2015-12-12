@@ -3,9 +3,7 @@ package com.nullin.testrail;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -202,14 +200,15 @@ public class TestRailReporter {
             }
 
             String comment = null;
-            if (resultStatus.equals(ResultStatus.FAIL)) {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                throwable.printStackTrace(new PrintStream(os));
-                comment = new String(os.toByteArray(), "UTF-8");
-            }
-
             if (screenshotUrl != null && !screenshotUrl.isEmpty()) {
-                comment = "![](" + screenshotUrl + ")\n\n" + comment;
+                comment = "![](" + screenshotUrl + ")\n\n";
+            }
+            if (resultStatus.equals(ResultStatus.SKIP)) {
+                comment += "Test skipped because of configuration method failure. " +
+                        "Related config error (if captured): \n\n";
+            }
+            if (resultStatus.equals(ResultStatus.FAIL) || resultStatus.equals(ResultStatus.SKIP)) {
+                comment += getStackTraceAsString(throwable);
             }
 
             //add the result
@@ -228,6 +227,17 @@ public class TestRailReporter {
             //only log and do nothing else
             logger.severe("Ran into exception " + ex.getMessage());
         }
+    }
+
+    private String getStackTraceAsString(Throwable throwable) throws UnsupportedEncodingException {
+        if (throwable == null) {
+            return "";
+        }
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        throwable.printStackTrace(new PrintStream(os));
+        String str = new String(os.toByteArray(), "UTF-8");
+        str = str.replace("\n", "\n    ").replace("\t", "    "); //better printing
+        return str;
     }
 
     /**

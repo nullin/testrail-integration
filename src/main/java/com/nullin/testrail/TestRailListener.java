@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.nullin.testrail.annotations.TestRailCase;
+import org.testng.IConfigurationListener;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
@@ -16,12 +17,19 @@ import org.testng.annotations.Test;
  *
  * @author nullin
  */
-public class TestRailListener implements ITestListener {
+public class TestRailListener implements ITestListener, IConfigurationListener {
 
     private Logger logger = Logger.getLogger(TestRailListener.class.getName());
 
     private TestRailReporter reporter;
     private boolean enabled;
+
+    /**
+     * Store the result associated with a failed configuration here. This can
+     * then be used when reporting the result of a skipped test to provide
+     * additional information in TestRail
+     */
+    private ThreadLocal<ITestResult> testSkipResult = new ThreadLocal<ITestResult>();
 
     public TestRailListener() {
         try {
@@ -93,6 +101,13 @@ public class TestRailListener implements ITestListener {
             props.put("elapsed",  elapsed + "s");
             props.put("status", getStatus(status));
             props.put("throwable", throwable);
+            //override if needed
+            if (status == ITestResult.SKIP) {
+                ITestResult skipResult = testSkipResult.get();
+                if (skipResult != null) {
+                    props.put("throwable", skipResult.getThrowable());
+                }
+            }
             props.put("screenshotUrl", getScreenshotUrl(result));
             reporter.reportResult(automationId, props);
         } catch(Exception ex) {
@@ -101,37 +116,30 @@ public class TestRailListener implements ITestListener {
         }
     }
 
-    @Override
     public void onTestStart(ITestResult result) {
         //not reporting a started status
     }
 
-    @Override
     public void onTestSuccess(ITestResult result) {
         reportResult(result);
     }
 
-    @Override
     public void onTestFailure(ITestResult result) {
         reportResult(result);
     }
 
-    @Override
     public void onTestSkipped(ITestResult result) {
         reportResult(result);
     }
 
-    @Override
     public void onTestFailedButWithinSuccessPercentage(ITestResult result) {
         //nothing here
     }
 
-    @Override
     public void onStart(ITestContext context) {
         //nothing here
     }
 
-    @Override
     public void onFinish(ITestContext context) {
         //nothing here
     }
@@ -168,4 +176,15 @@ public class TestRailListener implements ITestListener {
         }
     }
 
+    public void onConfigurationSuccess(ITestResult iTestResult) {
+        testSkipResult.remove();
+    }
+
+    public void onConfigurationFailure(ITestResult iTestResult) {
+        testSkipResult.set(iTestResult);
+    }
+
+    public void onConfigurationSkip(ITestResult iTestResult) {
+        //nothing here
+    }
 }
