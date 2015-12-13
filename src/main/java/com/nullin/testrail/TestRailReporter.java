@@ -30,12 +30,18 @@ import com.nullin.testrail.dto.Test;
 public class TestRailReporter {
 
     private Logger logger = Logger.getLogger(TestRailReporter.class.getName());
-    private TestRailArgs args;
     private TestRailClient client;
     private Map<String, Integer> caseIdLookupMap;
     private Map<String, Integer> testToRunIdMap;
     private Boolean enabled;
     private String config;
+
+    //keys for the properties map that is used to pass test information into this reporter
+    public static final String KEY_MORE_INFO = "moreInfo";
+    public static final String KEY_SCREENSHOT_URL = "screenshotUrl";
+    public static final String KEY_STATUS = "status";
+    public static final String KEY_ELAPSED = "elapsed";
+    public static final String KEY_THROWABLE = "throwable";
 
     private static class Holder {
         private static final TestRailReporter INSTANCE = new TestRailReporter();
@@ -55,7 +61,7 @@ public class TestRailReporter {
      * @throws com.nullin.testrail.client.ClientException
      */
     private TestRailReporter() {
-        args = TestRailArgs.getNewTestRailListenerArgs();
+        TestRailArgs args = TestRailArgs.getNewTestRailListenerArgs();
         enabled = args.getEnabled();
         enabled = enabled == null ? false : enabled;
 
@@ -148,50 +154,27 @@ public class TestRailReporter {
     }
 
     /**
-     * Reports the result to TestRail
-     *
-     * @param automationId automation id of the test case
-     * @param resultStatus status of the test after execution (or attempted execution)
-     * @param throwable Any associated exception, only reported if the result status
-     *                  is {@link com.nullin.testrail.ResultStatus#FAIL}
-     *
+     * Reports results to testrail
+     * @param automationId test automation id
+     * @param properties test properties. Following values are supported:
+     *                   <ul>
+     *                   <li>{@link #KEY_ELAPSED}: elapsed time as string</li>
+     *                   <li>{@link #KEY_MORE_INFO}: more test information as Map<String, String></li>
+     *                   <li>{@link #KEY_SCREENSHOT_URL}: screen shot url as string</li>
+     *                   <li>{@link #KEY_STATUS}: {@link ResultStatus} of the test</li>
+     *                   <li>{@link #KEY_THROWABLE}: any associated {@link Throwable}</li>
+     *                   </ul>
      */
-    @Deprecated
-    public void reportResult(String automationId, ResultStatus resultStatus, Throwable throwable) {
-        reportResult(automationId, resultStatus, throwable, null);
-    }
-
-    /**
-     * Reports the result to TestRail
-     *
-     * @param automationId automation id of the test case
-     * @param resultStatus status of the test after execution (or attempted execution)
-     * @param throwable Any associated exception, only reported if the result status
-     *                  is {@link com.nullin.testrail.ResultStatus#FAIL}
-     * @param screenshotUrl URL to a screenshot if one was captured and uploaded to an external server.
-     *                      This URL will be encapsulated in the associated test comment to display the
-     *                      screenshot for tests with result status as {@link com.nullin.testrail.ResultStatus#FAIL}
-     *
-     */
-    @Deprecated
-    public void reportResult(String automationId, ResultStatus resultStatus, Throwable throwable, String screenshotUrl) {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("status", resultStatus);
-        properties.put("throwable", throwable);
-        properties.put("screenshotUrl", screenshotUrl);
-        reportResult(automationId, properties);
-    }
-
     public void reportResult(String automationId, Map<String, Object> properties) {
         if (!enabled) {
             return; //do nothing
         }
 
-        ResultStatus resultStatus = (ResultStatus)properties.get("status");
-        Throwable throwable = (Throwable)properties.get("throwable");
-        String elapsed = (String)properties.get("elapsed");
-        String screenshotUrl = (String)properties.get("screenshotUrl");
-        Map<String, String> moreInfo = (Map<String, String>)properties.get("moreInfo");
+        ResultStatus resultStatus = (ResultStatus)properties.get(KEY_STATUS);
+        Throwable throwable = (Throwable)properties.get(KEY_THROWABLE);
+        String elapsed = (String)properties.get(KEY_ELAPSED);
+        String screenshotUrl = (String)properties.get(KEY_SCREENSHOT_URL);
+        Map<String, String> moreInfo = (Map<String, String>)properties.get(KEY_MORE_INFO);
 
         try {
             Integer caseId = caseIdLookupMap.get(automationId);
@@ -201,7 +184,7 @@ public class TestRailReporter {
             }
 
             StringBuilder comment = new StringBuilder("More Info (if any):\n");
-            if (!moreInfo.isEmpty()) {
+            if (moreInfo != null && !moreInfo.isEmpty()) {
                 for (Map.Entry<String, String> entry: moreInfo.entrySet()) {
                     comment.append("- ").append(entry.getKey()).append(" : ")
                             .append('`').append(entry.getValue()).append("`\n");

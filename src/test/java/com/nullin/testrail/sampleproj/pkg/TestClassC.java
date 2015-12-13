@@ -1,6 +1,8 @@
 package com.nullin.testrail.sampleproj.pkg;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.nullin.testrail.ResultStatus;
 import com.nullin.testrail.TestRailReporter;
@@ -29,8 +31,11 @@ public class TestClassC {
     @TestRailCase(selfReporting = true)
     @Test
     public void test5() {
-        TestRailReporter.getInstance().reportResult("testC3", ResultStatus.PASS, null);
-        TestRailReporter.getInstance().reportResult("testC4", ResultStatus.FAIL,
-                new IOException("Something very bad happened!!"));
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put(TestRailReporter.KEY_STATUS, ResultStatus.PASS);
+        TestRailReporter.getInstance().reportResult("testC3", result);
+        result.put(TestRailReporter.KEY_STATUS, ResultStatus.FAIL);
+        result.put(TestRailReporter.KEY_THROWABLE, new IOException("Something very bad happened!!"));
+        TestRailReporter.getInstance().reportResult("testC4", result);
     }
 }
