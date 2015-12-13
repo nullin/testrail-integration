@@ -1,7 +1,10 @@
 package com.nullin.testrail;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -109,6 +112,14 @@ public class TestRailListener implements ITestListener, IConfigurationListener {
                 }
             }
             props.put("screenshotUrl", getScreenshotUrl(result));
+            Map<String, String> moreInfo = new LinkedHashMap<String, String>();
+            moreInfo.put("class", result.getMethod().getRealClass().getCanonicalName());
+            moreInfo.put("method", result.getMethod().getMethodName());
+            if (result.getParameters() != null) {
+                moreInfo.put("parameters", Arrays.toString(result.getParameters()));
+            }
+            moreInfo.putAll(getMoreInformation());
+            props.put("moreInfo", moreInfo);
             reporter.reportResult(automationId, props);
         } catch(Exception ex) {
             //only log and do nothing else
@@ -129,6 +140,11 @@ public class TestRailListener implements ITestListener, IConfigurationListener {
     }
 
     public void onTestSkipped(ITestResult result) {
+        if (result.getThrowable() != null) {
+            //test failed, but is reported as skipped because of RetryAnalyzer.
+            //so, changing result status and reporting this as failure instead.
+            result.setStatus(ITestResult.FAILURE);
+        }
         reportResult(result);
     }
 
@@ -155,6 +171,18 @@ public class TestRailListener implements ITestListener, IConfigurationListener {
      */
     public String getScreenshotUrl(ITestResult result) {
         return null; //should be extended & overridden if needed
+    }
+
+    /**
+     * In case, we want to log more information about the test execution, this method can be used.
+     *
+     * NOTE: the test class/method/parameter information is automatically logged.
+     *
+     * This method should be overridden in a sub-class to provide map containing information
+     * that should be displayed for each test result in TestRail
+     */
+    public Map<String, String> getMoreInformation() {
+        return Collections.emptyMap(); //should be extended & overridden if needed
     }
 
     /**

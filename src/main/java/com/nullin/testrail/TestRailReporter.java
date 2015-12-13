@@ -191,6 +191,7 @@ public class TestRailReporter {
         Throwable throwable = (Throwable)properties.get("throwable");
         String elapsed = (String)properties.get("elapsed");
         String screenshotUrl = (String)properties.get("screenshotUrl");
+        Map<String, String> moreInfo = (Map<String, String>)properties.get("moreInfo");
 
         try {
             Integer caseId = caseIdLookupMap.get(automationId);
@@ -199,16 +200,27 @@ public class TestRailReporter {
                 return; //nothing more to do
             }
 
-            String comment = null;
+            StringBuilder comment = new StringBuilder("More Info (if any):\n");
+            if (!moreInfo.isEmpty()) {
+                for (Map.Entry<String, String> entry: moreInfo.entrySet()) {
+                    comment.append("- ").append(entry.getKey()).append(" : ")
+                            .append('`').append(entry.getValue()).append("`\n");
+                }
+            } else {
+                comment.append("- `none`\n");
+            }
+            comment.append("\n");
             if (screenshotUrl != null && !screenshotUrl.isEmpty()) {
-                comment = "![](" + screenshotUrl + ")\n\n";
+                comment.append("![](").append(screenshotUrl).append(")\n\n");
             }
             if (resultStatus.equals(ResultStatus.SKIP)) {
-                comment += "Test skipped because of configuration method failure. " +
-                        "Related config error (if captured): \n\n";
+                comment.append("Test skipped because of configuration method failure. " +
+                        "Related config error (if captured): \n\n");
+                comment.append(getStackTraceAsString(throwable));
             }
-            if (resultStatus.equals(ResultStatus.FAIL) || resultStatus.equals(ResultStatus.SKIP)) {
-                comment += getStackTraceAsString(throwable);
+            if (resultStatus.equals(ResultStatus.FAIL)) {
+                comment.append("Test failed with following exception (if captured): \n\n");
+                comment.append(getStackTraceAsString(throwable));
             }
 
             //add the result
@@ -236,7 +248,7 @@ public class TestRailReporter {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         throwable.printStackTrace(new PrintStream(os));
         String str = new String(os.toByteArray(), "UTF-8");
-        str = str.replace("\n", "\n    ").replace("\t", "    "); //better printing
+        str = "    " + str.replace("\n", "\n    ").replace("\t", "    "); //better printing
         return str;
     }
 
