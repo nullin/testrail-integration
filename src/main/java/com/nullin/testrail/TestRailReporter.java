@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -209,7 +211,7 @@ public class TestRailReporter {
             //add the result
             Map<String, Object> body = new HashMap<String, Object>();
             body.put("status_id", getStatus(resultStatus));
-            body.put("comment", comment);
+            body.put("comment", new String(comment.toString().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
             body.put("elapsed", elapsed);
 
             Integer runId = testToRunIdMap.get(automationId + config);
