@@ -188,13 +188,8 @@ public class TestRailReporter {
             StringBuilder comment = new StringBuilder("More Info (if any):\n");
             if (moreInfo != null && !moreInfo.isEmpty()) {
                 for (Map.Entry<String, String> entry: moreInfo.entrySet()) {
-                    String value = entry.getValue();
-                    comment.append("- ").append(entry.getKey()).append(" : ");
-                    if (value.toLowerCase().trim().startsWith("http")) {
-                        comment.append("[`").append(value).append("`](").append(value).append(")\n");
-                    } else {
-                        comment.append('`').append(value).append("`\n");
-                    }
+                    comment.append("- ").append(entry.getKey()).append(" : ")
+                            .append('`').append(entry.getValue()).append("`\n");
                 }
             } else {
                 comment.append("- `none`\n");
