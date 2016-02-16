@@ -118,7 +118,7 @@ public class TestRailListener implements ITestListener, IConfigurationListener {
             if (result.getParameters() != null) {
                 moreInfo.put("parameters", Arrays.toString(result.getParameters()));
             }
-            moreInfo.putAll(getMoreInformation());
+            moreInfo.putAll(getMoreInformation(result));
             props.put("moreInfo", moreInfo);
             reporter.reportResult(automationId, props);
         } catch(Exception ex) {
@@ -181,7 +181,7 @@ public class TestRailListener implements ITestListener, IConfigurationListener {
      * This method should be overridden in a sub-class to provide map containing information
      * that should be displayed for each test result in TestRail
      */
-    public Map<String, String> getMoreInformation() {
+    public Map<String, String> getMoreInformation(ITestResult result) {
         return Collections.emptyMap(); //should be extended & overridden if needed
     }
 
