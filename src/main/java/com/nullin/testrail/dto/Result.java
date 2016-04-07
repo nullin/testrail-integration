@@ -13,7 +13,7 @@ public class Result {
     @JsonProperty("test_id")
     public int testId;
     @JsonProperty("status_id")
-    public int statusId;
+    public Integer statusId;
     public String comment;
 
 }

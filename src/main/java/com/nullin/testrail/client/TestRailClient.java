@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,8 +28,6 @@ import com.nullin.testrail.dto.Test;
  * different object types within this one class. The method parameters
  * translate to the fields accepted as part of the request URL as well as a
  * map of fields that can be passed as body of the POST requests
- *
- * Client works with TestRails v4.0
  *
  * @author nullin
  */
@@ -111,6 +108,21 @@ public class TestRailClient {
     Results
      */
 
+    public List<Result> getResults(int testId) throws IOException, ClientException {
+        String url = "get_results/" + testId;
+        return objectMapper.readValue(client.invokeHttpGet(url), new  TypeReference<List<Result>>(){});
+    }
+
+    public List<Result> getResultsForRun(int runId, Map<String, String> filters) throws IOException, ClientException {
+        String url = "get_results_for_run/" + runId;
+        if (filters != null) {
+            for (Map.Entry<String, String> entry : filters.entrySet()) {
+                url += "&" + entry.getKey() + "=" + entry.getValue();
+            }
+        }
+        return objectMapper.readValue(client.invokeHttpGet(url), new  TypeReference<List<Result>>(){});
+    }
+
     /**
      *
      * @return
@@ -184,6 +196,16 @@ public class TestRailClient {
         return objectMapper.readValue(client.invokeHttpGet(url), new TypeReference<List<Case>>(){});
     }
 
+    /**
+     * Needed when you need to work with custom fields that are not part of the {@link Case} class
+     * @param projectId
+     * @param suiteId
+     * @param sectionId
+     * @param filters
+     * @return
+     * @throws IOException
+     * @throws ClientException
+     */
     public List<Map<String, Object>> getCasesAsMap(int projectId, int suiteId, int sectionId, Map<String, String> filters)
                 throws IOException, ClientException {
         String url = "get_cases/" + projectId;

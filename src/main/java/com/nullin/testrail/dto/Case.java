@@ -23,6 +23,7 @@ public class Case {
     //we need to add it as a custom field
     @JsonProperty("custom_automation_id")
     public String automationId;
+    public String refs;
 
 
 }
