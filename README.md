@@ -10,7 +10,7 @@ Requirements/Assumptions
 
 * Project should be setup as a single repository with baseline support.
 * A custom field named `automation_id` should be added to the Case type for the project.
-* All suite names should be unique
+* ~~All suite names should be unique~~
 * Automation IDs need to be unique within a TestRail test suite
 
 ### Test Code
