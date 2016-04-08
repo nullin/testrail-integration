@@ -3,39 +3,36 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.nullin</groupId>
-    <artifactId>testrail-connector</artifactId>
-    <version>2.3.4</version>
-    <packaging>jar</packaging>
+    <artifactId>testrail-integration</artifactId>
+    <version>2.3.5-SNAPHSOT</version>
+    <packaging>pom</packaging>
 
-    <name>testrailConnector</name>
+    <name>TestRail Integration</name>
     <url>https://github.com/nullin/testrail-integration</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.8.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.4.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.4.1</version>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>testrail-connector</module>
+        <module>testrail-utils</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>18.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>6.8.8</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -45,6 +42,22 @@
                 <version>2.9</version>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <compilerArgument>-Xlint:all</compilerArgument>
+                    <compilerArgument>-Xlint:-serial</compilerArgument>
+                    <debug>true</debug>
+                    <debuglevel>lines,vars,source</debuglevel>
+                    <fork>true</fork>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>

@@ -5,3 +5,4 @@ pom.xml.next
 release.properties
 .idea/
 deploy.py
+*.iml
