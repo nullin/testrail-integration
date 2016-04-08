@@ -165,36 +165,6 @@ not supported yet. Need to handle configurationIds for that to work)
 
 ```
 
-Different Scenarios
--------------------
-
-1. Multiple suites (master and it's baselines) with same test cases
-
-  We need to ensure that we have a way to get from automation id of a test case to a test result. This will be
-  done by ensuring that we are picking up the automation id of the test cases from the correct suite. Suite names
-  will have to be passed in as an argument.
-
-2. Multiple TestRail test cases implemented as part of a single automated test
-
-  We will need to ensure that the class doing the actual test result logging is available as a Singleton and that
-  calls can be made from within the automated test cases as well to log results. Note that this means we aren't using
-  the TestNG listener for such tests.
-
-3. Automated data-driven tests
-
-  We assume that the first parameter passed into a data-driven test case would be it's automation id and use this
-  to figure out the associated TestRail test case.
-
-4. Existing TestRail test run
-
-  We will assume that the test run has all the required suites already associated with it. For this scenario,
-  any specified suite names configuration will be ignored.
-
-5. Non-existent TestRail test run
-
-  We will create a new TestRail test run and also associate the TestRail test suites which were passed in to us
-  while configuring the listener. For this scenario, suite names is a required configuration.
-
 Future work
 --------------------
 
