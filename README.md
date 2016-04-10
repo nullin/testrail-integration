@@ -9,7 +9,7 @@ Requirements/Assumptions
 ### TestRail Configuration
 
 * Project should be setup as a single repository with baseline support.
-* A custom field named `automation_id` should be added to the Case type for the project.
+* A custom string field named `automation_id` should be added to the `Case` fields for the project.
 * ~~All suite names should be unique~~
 * Automation IDs need to be unique within a TestRail test suite
 
@@ -29,7 +29,7 @@ and should be fixed quickly.
 How to use `automation_id`
 ---------------------
 
-The custom field `automation_id` in TestRail contains unique strings that are referenced by test code to report
+The custom string field `automation_id` in TestRail contains unique strings that are referenced by test code to report
 results. This unique string is associated to tests in multiple ways:
 
 ### Sing Test Method
