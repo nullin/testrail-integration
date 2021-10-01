@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.http.HttpException;
+
 import com.nullin.testrail.client.ClientException;
 import com.nullin.testrail.client.TestRailClient;
 import com.nullin.testrail.dto.Case;
@@ -171,58 +173,77 @@ public class TestRailReporter {
         if (!enabled) {
             return; //do nothing
         }
+        
+        int retryCount = 5;
+        
+        while (retryCount > 0) {
+	        ResultStatus resultStatus = (ResultStatus)properties.get(KEY_STATUS);
+	        Throwable throwable = (Throwable)properties.get(KEY_THROWABLE);
+	        String elapsed = (String)properties.get(KEY_ELAPSED);
+	        String screenshotUrl = (String)properties.get(KEY_SCREENSHOT_URL);
+	        Map<String, String> moreInfo = (Map<String, String>)properties.get(KEY_MORE_INFO);
+	
+	        try {
+	            Integer caseId = caseIdLookupMap.get(automationId);
+	            if (caseId == null) {
+	                logger.severe("Didn't find case id for test with automation id " + automationId);
+	                return; //nothing more to do
+	            }
+	
+	            StringBuilder comment = new StringBuilder("More Info (if any):\n");
+	            if (moreInfo != null && !moreInfo.isEmpty()) {
+	                for (Map.Entry<String, String> entry: moreInfo.entrySet()) {
+	                    comment.append("- ").append(entry.getKey()).append(" : ")
+	                            .append('`').append(entry.getValue()).append("`\n");
+	                }
+	            } else {
+	                comment.append("- `none`\n");
+	            }
+	            comment.append("\n");
+	            if (screenshotUrl != null && !screenshotUrl.isEmpty()) {
+	                comment.append("![](").append(screenshotUrl).append(")\n\n");
+	            }
+	            if (resultStatus.equals(ResultStatus.SKIP)) {
+	                comment.append("Test skipped because of configuration method failure. " +
+	                        "Related config error (if captured): \n\n");
+	                comment.append(getStackTraceAsString(throwable));
+	            }
+	            if (resultStatus.equals(ResultStatus.FAIL)) {
+	                comment.append("Test failed with following exception (if captured): \n\n");
+	                comment.append(getStackTraceAsString(throwable));
+	            }
+	
+	            //add the result
+	            Map<String, Object> body = new HashMap<String, Object>();
+	            body.put("status_id", getStatus(resultStatus));
+	            body.put("comment", new String(comment.toString().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+	            body.put("elapsed", elapsed);
+	
+	            Integer runId = testToRunIdMap.get(automationId + config);
+	            if (runId == null) {
+	                throw new IllegalArgumentException("Unable to find run id for test with automation id "
+	                        + automationId + " and configuration set as " + config);
+	            }
+	            client.addResultForCase(runId, caseId, body);   
+	            
+	            retryCount = 0;
+	        } catch(Exception ex) {
+	        	if (ex.getMessage().contains("Received status code 409 with content")) {
+	        		logger.warning("Maintenance mode, sleep 1 second and retry: " + ex.getMessage());
+	        		retryCount--;
 
-        ResultStatus resultStatus = (ResultStatus)properties.get(KEY_STATUS);
-        Throwable throwable = (Throwable)properties.get(KEY_THROWABLE);
-        String elapsed = (String)properties.get(KEY_ELAPSED);
-        String screenshotUrl = (String)properties.get(KEY_SCREENSHOT_URL);
-        Map<String, String> moreInfo = (Map<String, String>)properties.get(KEY_MORE_INFO);
-
-        try {
-            Integer caseId = caseIdLookupMap.get(automationId);
-            if (caseId == null) {
-                logger.severe("Didn't find case id for test with automation id " + automationId);
-                return; //nothing more to do
-            }
-
-            StringBuilder comment = new StringBuilder("More Info (if any):\n");
-            if (moreInfo != null && !moreInfo.isEmpty()) {
-                for (Map.Entry<String, String> entry: moreInfo.entrySet()) {
-                    comment.append("- ").append(entry.getKey()).append(" : ")
-                            .append('`').append(entry.getValue()).append("`\n");
-                }
-            } else {
-                comment.append("- `none`\n");
-            }
-            comment.append("\n");
-            if (screenshotUrl != null && !screenshotUrl.isEmpty()) {
-                comment.append("![](").append(screenshotUrl).append(")\n\n");
-            }
-            if (resultStatus.equals(ResultStatus.SKIP)) {
-                comment.append("Test skipped because of configuration method failure. " +
-                        "Related config error (if captured): \n\n");
-                comment.append(getStackTraceAsString(throwable));
-            }
-            if (resultStatus.equals(ResultStatus.FAIL)) {
-                comment.append("Test failed with following exception (if captured): \n\n");
-                comment.append(getStackTraceAsString(throwable));
-            }
-
-            //add the result
-            Map<String, Object> body = new HashMap<String, Object>();
-            body.put("status_id", getStatus(resultStatus));
-            body.put("comment", new String(comment.toString().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
-            body.put("elapsed", elapsed);
-
-            Integer runId = testToRunIdMap.get(automationId + config);
-            if (runId == null) {
-                throw new IllegalArgumentException("Unable to find run id for test with automation id "
-                        + automationId + " and configuration set as " + config);
-            }
-            client.addResultForCase(runId, caseId, body);
-        } catch(Exception ex) {
-            //only log and do nothing else
-            logger.severe("Ran into exception " + ex.getMessage());
+	        		try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {					
+					}
+	        		
+	        	} else {
+	        		//only log and do nothing else
+	        		logger.severe("Ran into exception " + ex.getMessage());
+	        		
+	        		retryCount = 0;
+	        	}
+	        }
         }
     }
 

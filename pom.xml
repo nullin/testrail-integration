@@ -4,7 +4,7 @@
 
     <groupId>com.nullin</groupId>
     <artifactId>testrail-integration</artifactId>
-    <version>2.3.5-SNAPHSOT</version>
+    <version>2.3.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>TestRail Integration</name>
@@ -60,6 +60,19 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
+
+	    <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-source-plugin</artifactId>
+		<executions>
+			<execution>
+				<id>attach-sources</id>
+				<goals>
+					<goal>jar</goal>
+				</goals>
+			</execution>
+		</executions>
+	   </plugin>
         </plugins>
     </build>
 
