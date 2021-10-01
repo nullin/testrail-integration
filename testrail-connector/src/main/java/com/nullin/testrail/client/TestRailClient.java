@@ -1,9 +1,12 @@
 package com.nullin.testrail.client;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.codec.binary.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -11,6 +14,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.nullin.testrail.dto.Case;
+import com.nullin.testrail.dto.CaseList;
 import com.nullin.testrail.dto.Milestone;
 import com.nullin.testrail.dto.Plan;
 import com.nullin.testrail.dto.PlanEntry;
@@ -19,6 +23,7 @@ import com.nullin.testrail.dto.Run;
 import com.nullin.testrail.dto.Section;
 import com.nullin.testrail.dto.Suite;
 import com.nullin.testrail.dto.Test;
+import com.nullin.testrail.dto.TestList;
 
 /**
  * TestRail Client for endpoints described at
@@ -156,7 +161,23 @@ public class TestRailClient {
     }
 
     public List<Test> getTests(int runId) throws IOException, ClientException {
-        return objectMapper.readValue(client.invokeHttpGet("get_tests/" + runId), new TypeReference<List<Test>>(){});
+        List<Test> result = new ArrayList<>();
+        String url = "get_tests/" + runId;
+        
+        while (url != null) {
+        	TestList testList = objectMapper.readValue(client.invokeHttpGet(url), TestList.class);
+        	
+        	if (testList != null && testList._links.next != null) {
+        		
+        		result.addAll(testList.tests);
+        		
+        		url = testList._links.next.replace("/api/v2", "");
+        	} else {
+        		break;
+        	}        	
+        }
+    	
+        return result;
     }
 
     /*
@@ -193,7 +214,21 @@ public class TestRailClient {
                 url += "&" + entry.getKey() + "=" + entry.getValue();
             }
         }
-        return objectMapper.readValue(client.invokeHttpGet(url), new TypeReference<List<Case>>(){});
+        
+        List<Case> result = new ArrayList<>();
+        while (url != null) {
+        	CaseList caseList = objectMapper.readValue(client.invokeHttpGet(url), CaseList.class);
+        	
+        	if (caseList != null && caseList._links.next != null) {
+        		result.addAll(caseList.cases);
+        		
+        		url = caseList._links.next.replace("/api/v2", "");
+        	} else {
+        		break;
+        	}        	
+        }
+        
+        return result;
     }
 
     /**
